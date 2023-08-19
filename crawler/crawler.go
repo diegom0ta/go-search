@@ -41,13 +41,16 @@ func (c *Crawler) Crawl() (*goquery.Document, error) {
 	c.Text = doc.Find("body").Text()
 
 	// Find all links in the page
+	lc := make(chan string)
+
 	doc.Find("a").Each(func(i int, s *goquery.Selection) {
 		link, exists := s.Attr("href")
 		if exists {
-			lc := make(chan string)
 			lc <- link
 		}
 	})
+
+	close(lc)
 
 	// Return the parsed page
 	return doc, nil
