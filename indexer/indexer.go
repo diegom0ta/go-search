@@ -22,7 +22,7 @@ func NewIndexer(db *bolt.DB) *Indexer {
 	}
 }
 
-func (i Indexer) generateRandomString(length int) string {
+func generateRandomString(length int) string {
 	b := make([]byte, length)
 	for i := range b {
 		b[i] = charset[seededRand.Intn(len(charset))]
@@ -35,7 +35,7 @@ func (i *Indexer) Index(data string) {
 	kv := make(map[string]string)
 
 	for _, d := range sd {
-		s := i.generateRandomString(4)
+		s := generateRandomString(4)
 		kv[s] = d
 	}
 
