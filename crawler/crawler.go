@@ -12,8 +12,7 @@ var client = &http.Client{
 }
 
 type Crawler struct {
-	Url  string
-	Text string
+	Url string
 }
 
 func NewCrawler(url string) *Crawler {
@@ -22,11 +21,11 @@ func NewCrawler(url string) *Crawler {
 	}
 }
 
-func (c *Crawler) Crawl() (*goquery.Document, error) {
+func (c *Crawler) Crawl(lc chan string) (*goquery.Document, chan string, string, error) {
 	// Fetch the URL
 	res, err := c.fetch(c.Url)
 	if err != nil {
-		return nil, err
+		return nil, nil, "", err
 	}
 
 	defer res.Body.Close()
@@ -34,14 +33,13 @@ func (c *Crawler) Crawl() (*goquery.Document, error) {
 	// Parse the page with goquery
 	doc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
-		return nil, err
+		return nil, nil, "", err
 	}
 
 	// Extract the page text
-	c.Text = doc.Find("body").Text()
+	text := doc.Find("body").Text()
 
 	// Find all links in the page
-	lc := make(chan string)
 
 	doc.Find("a").Each(func(i int, s *goquery.Selection) {
 		link, exists := s.Attr("href")
@@ -53,7 +51,7 @@ func (c *Crawler) Crawl() (*goquery.Document, error) {
 	close(lc)
 
 	// Return the parsed page
-	return doc, nil
+	return doc, lc, text, nil
 }
 
 func (c *Crawler) fetch(url string) (*http.Response, error) {
